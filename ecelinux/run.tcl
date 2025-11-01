@@ -34,4 +34,12 @@ csim_design -O
 csynth_design
 # Co-simulate the design
 #cosim_design
+
+#---------------------------------------------
+# Collect & dump out results from HLS reports
+#---------------------------------------------
+set filename "bnn_result.csv"
+set argv [list $filename $hls_prj]
+set argc 2
+source "./script/collect_result.tcl"
 exit

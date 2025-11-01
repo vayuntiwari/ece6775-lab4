@@ -1,0 +1,15 @@
+ecelinux/bnn 
+ecelinux/*.dat 
+ecelinux/*.prj 
+ecelinux/result 
+ecelinux/*.log
+ecelinux/*.jou
+ecelinux/zedboard_project* 
+ecelinux/xillydemo.bit
+zedboard/bnn-arm 
+zedboard/vivado_hls.log 
+zedboard/*.prj 
+zedboard/result 
+zedboard/out.dat 
+zedboard/*~
+zedboard/bnn-fpga
