@@ -62,20 +62,42 @@ bit32_t bnn_xcel(bit input[1][I_WIDTH1][I_WIDTH1]) {
   bit32_t output;
 
   /* First Conv Layer */
+  #pragma HLS array_reshape variable=input complete dim=1
   pad<I_CHANNEL1, I_WIDTH1>(input, input_padded);
+  #pragma HLS array_reshape variable=input_padded complete dim=1
+  #pragma HLS array_reshape variable=input_padded complete dim=2
+  #pragma HLS array_partition variable=input_padded block dim=2 factor=9
+  #pragma HLS array_reshape variable=conv1 complete dim=1
+  #pragma HLS array_partition variable=conv1 block dim=3 factor 16
+  #pragma HLS array_reshape variable=w_conv1 complete dim=1
+  #pragma HLS array_reshape variable=w_conv1 complete dim=2
   conv<I_CHANNEL1, O_CHANNEL1, I_WIDTH1 + F_PAD>(input_padded, conv1,
                                                  threshold_conv1, w_conv1);
+  #pragma HLS array_reshape variable=conv1_pooled complete dim=1
+  #pragma HLS array_partition variable=conv1_pooled block dim=3 factor 8
   max_pool<O_CHANNEL1, I_WIDTH1>(conv1, conv1_pooled);
 
   /* Second Conv Layer */
   pad<O_CHANNEL1, I_WIDTH2>(conv1_pooled, conv1_pooled_padded);
+  #pragma HLS array_reshape variable=conv1_pooled_padded complete dim=1
+  #pragma HLS array_partition variable=conv1_pooled_padded block dim=3 factor 10
+  #pragma HLS array_reshape variable=conv2 complete dim=1
+  #pragma HLS array_partition variable=conv2 block dim=3 factor 8
+  #pragma HLS array_reshape variable=w_conv2 complete dim=1
   conv<O_CHANNEL1, O_CHANNEL2, I_WIDTH2 + F_PAD>(conv1_pooled_padded, conv2,
                                                  threshold_conv2, w_conv2);
+  #pragma HLS array_reshape variable=conv2_pooled complete dim=1
+  #pragma HLS array_partition variable=conv2_pooled block dim=3 factor 4
   max_pool<O_CHANNEL2, I_WIDTH2>(conv2, conv2_pooled);
 
   flatten(conv2_pooled, reshaped);
 
   /* Dense Layers */
+  #pragma HLS array_reshape variable=reshaped block dim=1 factor=32
+  #pragma HLS array_partition variable=reshaped block dim=1 factor=8
+  #pragma HLS array_reshape variable=w_fc1 block dim=1 factor=32
+  #pragma HLS array_reshape variable=signed1 block dim=1 factor=32
+  #pragma HLS array_reshape variable=w_fc2 block dim=1 factor=32
   dense<I_UNITS1, I_UNITS2>(reshaped, dense1, w_fc1);
   sign<I_UNITS2>(dense1, signed1);
   dense<I_UNITS2, NUM_DIGITS>(signed1, dense2, w_fc2);
